@@ -16,13 +16,13 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class WxOpenConfig {
     /**
-     * 设置云视讯的appid
+     * 设置appid
      */
     @Value("${wx.open.config.appid}")
     private String appid;
 
     /**
-     * 设置云视讯的app secret
+     * 设置app secret
      */
     @Value("${wx.open.config.secret}")
     private String secret;

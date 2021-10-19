@@ -2,6 +2,8 @@ package com.jovan.wxjava.service;
 
 import com.jovan.wxjava.protocol.LoginProtocol;
 
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
+
 /**
  * @author Jovan
  * @create 2019/8/12
@@ -18,5 +20,6 @@ public interface WeChatService {
      * @param input
      * @return
      */
-    Boolean wxCallBack(LoginProtocol.WeChatQrCodeCallBack.Input input);
+    WxMpUser wxCallBack(String code,String state);
+    //Boolean wxCallBack(LoginProtocol.WeChatQrCodeCallBack.Input input);
 }

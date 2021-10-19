@@ -1,14 +1,24 @@
 package com.jovan.wxjava.controller;
 
+import com.google.common.collect.Maps;
 import com.jovan.wxjava.entity.RestResult;
 import com.jovan.wxjava.entity.RestResultGenerator;
 import com.jovan.wxjava.protocol.LoginProtocol;
 import com.jovan.wxjava.service.WeChatService;
+
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -18,37 +28,36 @@ import javax.validation.Valid;
  */
 @RestController
 public class WeChatController {
-
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private WeChatService weChatService;
 
     /**
      * 获取微信登陆二维码地址
-     * @return
      */
-    @GetMapping("/getQRCodeUrl")
+    @GetMapping("/wechat-login/qrcode-url")
     public RestResult getQRCodeUrl() {
         return RestResultGenerator.createOkResult(weChatService.getQRCodeUrl());
     }
 
     /**
      * 微信扫码回调处理
-     * 使用 @Valid + BindingResult 进行 controller 参数校验，实现断路器。大家可以根据自己的喜好来，不必跟我这样做
-     * @param input
-     * @param bindingResult
-     * @return
+     * 注意：该操作需要由前端页面发起，并且携带扫码返回的code及state参数
      */
-    @GetMapping("/wxCallBack")
-    public String wxCallBack(@RequestBody @Valid LoginProtocol.WeChatQrCodeCallBack.Input input, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            return "failedPage";
-        }
-
-        if (weChatService.wxCallBack(input)) {
-            return "successPage";
+    @GetMapping("/wechat-login/callback")
+    public Map<String,Object> wxCallBack(@RequestParam String code, @RequestParam String state) {
+    	Map<String,Object> map = Maps.newHashMap();
+    	map.put("success", false);
+    	map.put("msg", "cannot get wxUser.");
+    	WxMpUser wxUser = weChatService.wxCallBack(code,state);
+        if (wxUser==null) {
+        	map.put("success", false);
+        	map.put("msg", "cannot get wxUser.");
         } else {
-            return "failedPage";
+        	map.put("success", true);
+        	map.put("msg", "got wxUser successfully.");
+        	map.put("data", wxUser);
         }
+        return map;
     }
 }

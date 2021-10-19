@@ -10,6 +10,9 @@ import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,7 +26,7 @@ import java.util.Date;
 @Service
 @Slf4j
 public class WeChatServiceImpl implements WeChatService {
-
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private WxMpService wxMpService;
 
@@ -42,15 +45,17 @@ public class WeChatServiceImpl implements WeChatService {
     }
 
     @Override
+    public WxMpUser wxCallBack(String code,String state) {
+    /**
     public Boolean wxCallBack(LoginProtocol.WeChatQrCodeCallBack.Input input) {
-
         String code = input.getCode();
         String state = input.getState();
+        //**/
         String openid = null;
         String token = null;
 
         if (code == null) {
-            return false;
+            return null;
         }
 
         if (code != null && state != null) {
@@ -58,7 +63,7 @@ public class WeChatServiceImpl implements WeChatService {
             String date = DateUtil.format(new Date(), "yyyyMMdd");
             Boolean isNotCsrf = MD5Utils.verify(CSRF_KEY + date, state);
             if (!isNotCsrf) {
-                return false;
+                return null;
             }
 
             // 获取 openid
@@ -68,18 +73,20 @@ public class WeChatServiceImpl implements WeChatService {
                 openid = accessToken.getOpenId();
                 token = accessToken.getAccessToken();
 
-
                 // 拿到 openid 后做自己的业务, 获取用 token 进一步获取用户信息
-
+                logger.debug("got  openid and accesstoken.[openid]"+openid+"[accessToken]"+token);
+                
                 // 用 access_token 获取用户的信息
                 WxMpUser user = wxMpService.oauth2getUserInfo(accessToken, null);
-
+                //TODO 存储用户到本地，注意需要带上应用类别：web
+                logger.debug("got user info.[wxUser]",user);
+                return user;
             } catch (WxErrorException e) {
-                log.error(e.getMessage(), e);
+            	logger.error(e.getMessage(), e);
             }
 
-            return true;
+            return null;
         }
-        return false;
+        return null;
     }
 }
